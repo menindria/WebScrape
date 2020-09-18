@@ -2,6 +2,8 @@
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Serilog;
+using Serilog.Events;
 using WebScrape.Application;
 using WebScrape.Application.Contracts;
 using WebScrape.Common;
@@ -19,13 +21,20 @@ namespace WebScrape
 
             var httpClient = new HttpClient();
             IConfiguration configuration = new Configuration();
-            new StorageInitializer().Initialize(configuration.StoragePath);
+            var logger = new Logger(new LoggerConfiguration()
+                    .MinimumLevel.Debug()
+                    .WriteTo.File("log.txt")
+                .CreateLogger());
+
+            RegisterGlobalExceptionHandler(logger);
+            InitializeStorage(configuration);
 
             IJob job = new Job(
                 new CurrencyListProvider(httpClient, configuration), 
                 new RateProviderFactory(httpClient, configuration), 
                 new RepositoryFactory(configuration.StoragePath),
-                new StatusLogger());
+                new UILogger(),
+                logger);
 
 
             await job.Execute(DateTime.UtcNow.AddDays(-2), DateTime.UtcNow);
@@ -33,6 +42,19 @@ namespace WebScrape
             Console.WriteLine("Work done.");
             Console.WriteLine("Press any key to close.");
             Console.Read();
+        }
+
+        private static void InitializeStorage(IConfiguration configuration)
+        {
+            new StorageInitializer().Initialize(configuration.StoragePath);
+        }
+
+        private static void RegisterGlobalExceptionHandler(Logger logger)
+        {
+            AppDomain.CurrentDomain.UnhandledException += (object sender, UnhandledExceptionEventArgs e) =>
+            {
+                logger.LogException((Exception) e.ExceptionObject);
+            };
         }
     }
 }

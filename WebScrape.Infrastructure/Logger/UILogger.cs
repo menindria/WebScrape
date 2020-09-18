@@ -3,7 +3,7 @@ using WebScrape.Application.Contracts;
 
 namespace WebScrape.Infrastructure.Logger
 {
-    public class StatusLogger : IStatusLogger
+    public class UILogger : IUILogger
     {
         public void FailedScraping(string message)
         {

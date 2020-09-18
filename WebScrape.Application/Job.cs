@@ -13,18 +13,21 @@ namespace WebScrape.Application
         private readonly ICurrencyListProvider _currencyListProvider;
         private readonly IRateProviderFactory _rateProviderFactory;
         private readonly IRepositoryFactory _repositoryFactory;
-        private readonly IStatusLogger _statusLogger;
+        private readonly IUILogger _iuiLogger;
+        private readonly ILogger _logger;
 
         public Job(
             ICurrencyListProvider currencyListProvider,
             IRateProviderFactory rateProviderFactory,
             IRepositoryFactory repositoryFactory,
-            IStatusLogger statusLogger)
+            IUILogger iuiLogger,
+            ILogger logger)
         {
             _currencyListProvider = currencyListProvider;
             _rateProviderFactory = rateProviderFactory;
             _repositoryFactory = repositoryFactory;
-            _statusLogger = statusLogger;
+            _iuiLogger = iuiLogger;
+            _logger = logger;
         }
 
         public async Task Execute(DateTime startDate, DateTime endDate)
@@ -32,7 +35,7 @@ namespace WebScrape.Application
             IEnumerable<string> currencyList = await _currencyListProvider.Execute();
 
 
-            await Task.WhenAll(currencyList.Select(currency => Task.Run(async () => //Here we can also use Parallel.ForEach that is not thread optimzied
+            await Task.WhenAll(currencyList.Select(currency => Task.Run(async () => //Here we can also use Parallel.ForEach that is not thread optimized but faster
             {
                 try
                 {
@@ -41,10 +44,10 @@ namespace WebScrape.Application
                     var fileName = $"{currency} {startDate.ToStandardDateString()}-{endDate.ToStandardDateString()}";
                     _repositoryFactory.Create().Save(data, fileName);
                 }
-                catch
+                catch (Exception exception)
                 {
-                    _statusLogger.FailedScraping($"Failed for currency {currency}");
-                    //Missing exception logger, it was not required by requirements
+                    _logger.LogException(exception);
+                    _iuiLogger.FailedScraping($"Failed for currency {currency}");
                 }
             })));
         }

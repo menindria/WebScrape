@@ -6,11 +6,11 @@ using WebScrape.Application.Contracts;
 
 namespace WebScrape.Infrastructure.Storage
 {
-    public class Repository : IRepository
+    public class CsvRepository : IRepository
     {
         private readonly string _path;
 
-        public Repository(string path)
+        public CsvRepository(string path)
         {
             _path = path;
         }

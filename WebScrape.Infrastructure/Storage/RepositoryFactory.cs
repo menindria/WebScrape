@@ -13,7 +13,7 @@ namespace WebScrape.Infrastructure.Storage
 
         public IRepository Create()
         {
-            return new Repository(_path);
+            return new CsvRepository(_path);
         }
     }
 }
