@@ -95,14 +95,14 @@ namespace WebScrape.Infrastructure.RateAccess
             var itemsInfo = new ItemsInfo();
             if (!rawHtmlData.Contains("sorry, no records！"))
             {
-                itemsInfo.Count = Parse(rawHtmlData, "m_nRecordCount");
-                itemsInfo.PageSize = Parse(rawHtmlData, "m_nPageSize");
+                itemsInfo.Count = ParseJavaScriptVariable(rawHtmlData, "m_nRecordCount");
+                itemsInfo.PageSize = ParseJavaScriptVariable(rawHtmlData, "m_nPageSize");
             }
 
             return itemsInfo;
         }
 
-        private static int Parse(string text, string variableName)
+        private static int ParseJavaScriptVariable(string text, string variableName)
         {
             var line = Regex.Match(text, $".*var {variableName}.*;").ToString();
             return int.Parse(Regex.Replace(line, "[^0-9.]", String.Empty));
