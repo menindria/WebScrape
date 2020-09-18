@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="15.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WebScrape.Domain\WebScrape.Domain.csproj" />
+    <ProjectReference Include="..\WebScrape.Application\WebScrape.Application.csproj" />
+    <ProjectReference Include="..\WebScrape.Common\WebScrape.Common.csproj" />
+  </ItemGroup>
+
+</Project>
