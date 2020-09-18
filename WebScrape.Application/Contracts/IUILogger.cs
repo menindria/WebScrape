@@ -2,6 +2,6 @@
 {
     public interface IUILogger
     {
-        void FailedScraping(string message);
+        void Message(string message);
     }
 }

@@ -12,9 +12,14 @@ namespace WebScrape.Infrastructure.Logger
             _logger = logger;
         }
 
-        public void LogException(Exception exception)
+        public void LogError(Exception exception)
         {
             _logger.Error(exception, exception.Message);
+        }
+        
+        public void LogError(string message)
+        {
+            _logger.Error(message);
         }
     }
 }

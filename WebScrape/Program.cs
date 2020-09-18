@@ -20,28 +20,29 @@ namespace WebScrape
 
             //Here we can use dependency injection container, I picked up poor man's dependency injection 
             IConfiguration configuration = new Configuration();
-            var logger = new Logger(new LoggerConfiguration()
+            Common.ILogger logger = new Logger(new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .WriteTo.File("log.txt")
                 .CreateLogger());
+            IUILogger uiLogger = new UILogger();
 
             RegisterGlobalExceptionHandler(logger);
             InitializeStorage(configuration);
 
-            using (var httpClient = new HttpClient())
+            using (var httpClient = new HttpClient(new HttpRetryMessageHandler(new HttpClientHandler(), logger)))
             {
                 IJob job = new Job(
                     new CurrencyListProvider(httpClient, configuration),
                     new RateProviderFactory(httpClient, configuration),
                     new RepositoryFactory(configuration.StoragePath),
-                    new UILogger(),
+                    uiLogger,
                     logger);
 
-
-                await job.Execute(DateTime.UtcNow.AddDays(-2), DateTime.UtcNow);
+                uiLogger.Message("Starting process.");
+                await job.Execute(DateTime.Now.AddDays(-1), DateTime.Now);
             }
 
-            Console.WriteLine("Work done.");
+            Console.WriteLine("Process done.");
             Console.WriteLine("Press any key to close.");
             Console.Read();
         }
@@ -51,11 +52,11 @@ namespace WebScrape
             new StorageInitializer().Initialize(configuration.StoragePath);
         }
 
-        private static void RegisterGlobalExceptionHandler(Logger logger)
+        private static void RegisterGlobalExceptionHandler(Common.ILogger logger)
         {
             AppDomain.CurrentDomain.UnhandledException += (object sender, UnhandledExceptionEventArgs e) =>
             {
-                logger.LogException((Exception) e.ExceptionObject);
+                logger.LogError((Exception) e.ExceptionObject);
             };
         }
     }

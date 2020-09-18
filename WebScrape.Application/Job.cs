@@ -13,20 +13,20 @@ namespace WebScrape.Application
         private readonly ICurrencyListProvider _currencyListProvider;
         private readonly IRateProviderFactory _rateProviderFactory;
         private readonly IRepositoryFactory _repositoryFactory;
-        private readonly IUILogger _iuiLogger;
+        private readonly IUILogger _uiLogger;
         private readonly ILogger _logger;
 
         public Job(
             ICurrencyListProvider currencyListProvider,
             IRateProviderFactory rateProviderFactory,
             IRepositoryFactory repositoryFactory,
-            IUILogger iuiLogger,
+            IUILogger uiLogger,
             ILogger logger)
         {
             _currencyListProvider = currencyListProvider;
             _rateProviderFactory = rateProviderFactory;
             _repositoryFactory = repositoryFactory;
-            _iuiLogger = iuiLogger;
+            _uiLogger = uiLogger;
             _logger = logger;
         }
 
@@ -34,7 +34,7 @@ namespace WebScrape.Application
         {
             IEnumerable<string> currencyList = await _currencyListProvider.Execute();
 
-            //It is possible also to add retry logic, but it was not in requirements
+            _uiLogger.Message($"Number of currencies: {currencyList.Count()}");
 
             await Task.WhenAll(currencyList.Select(currency => Task.Run(async () => //Here we can also use Parallel.ForEach that is not thread optimized but faster
             {
@@ -44,11 +44,12 @@ namespace WebScrape.Application
 
                     var fileName = $"{currency} {startDate.ToStandardDateString()}-{endDate.ToStandardDateString()}";
                     _repositoryFactory.Create().Save(data, fileName);
+                    _uiLogger.Message($"Finished for currency {currency}, number of results: {data.Count()}");
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogException(exception);
-                    _iuiLogger.FailedScraping($"Failed for currency {currency}");
+                    _logger.LogError(exception);
+                    _uiLogger.Message($"Failed for currency {currency}");
                 }
             })));
         }
