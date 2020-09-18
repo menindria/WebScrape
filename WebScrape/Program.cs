@@ -3,7 +3,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Serilog;
-using Serilog.Events;
 using WebScrape.Application;
 using WebScrape.Application.Contracts;
 using WebScrape.Common;
@@ -19,25 +18,27 @@ namespace WebScrape
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            var httpClient = new HttpClient();
             IConfiguration configuration = new Configuration();
             var logger = new Logger(new LoggerConfiguration()
-                    .MinimumLevel.Debug()
-                    .WriteTo.File("log.txt")
+                .MinimumLevel.Debug()
+                .WriteTo.File("log.txt")
                 .CreateLogger());
 
             RegisterGlobalExceptionHandler(logger);
             InitializeStorage(configuration);
 
-            IJob job = new Job(
-                new CurrencyListProvider(httpClient, configuration), 
-                new RateProviderFactory(httpClient, configuration), 
-                new RepositoryFactory(configuration.StoragePath),
-                new UILogger(),
-                logger);
+            using (var httpClient = new HttpClient())
+            {
+                IJob job = new Job(
+                    new CurrencyListProvider(httpClient, configuration),
+                    new RateProviderFactory(httpClient, configuration),
+                    new RepositoryFactory(configuration.StoragePath),
+                    new UILogger(),
+                    logger);
 
 
-            await job.Execute(DateTime.UtcNow.AddDays(-2), DateTime.UtcNow);
+                await job.Execute(DateTime.UtcNow.AddDays(-2), DateTime.UtcNow);
+            }
 
             Console.WriteLine("Work done.");
             Console.WriteLine("Press any key to close.");

@@ -34,6 +34,7 @@ namespace WebScrape.Application
         {
             IEnumerable<string> currencyList = await _currencyListProvider.Execute();
 
+            //It is possible also to add retry logic, but it was not in requirements
 
             await Task.WhenAll(currencyList.Select(currency => Task.Run(async () => //Here we can also use Parallel.ForEach that is not thread optimized but faster
             {
