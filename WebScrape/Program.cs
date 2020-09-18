@@ -18,6 +18,7 @@ namespace WebScrape
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
+            //Here we can use dependency injection container, I picked up poor man dependency 
             IConfiguration configuration = new Configuration();
             var logger = new Logger(new LoggerConfiguration()
                 .MinimumLevel.Debug()
